@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>İlanlar - Yatırım Danışmanı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec", 
+                        "background-dark": "#0f0e17", 
+                        "surface-dark": "#1e1b2e", 
+                        "border-dark": "#2e2a45",
+                        // Açık Tema Renkleri
+                        "background-light": "#f8fafc", 
+                        "surface-light": "#ffffff",
+                        "border-light": "#e2e8f0", 
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"], "body": ["Noto Sans", "sans-serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Genel Tema Ayarları (Varsayılan Koyu) */
+        body { 
+            font-family: 'Manrope', sans-serif; 
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Koyu Tema Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        .dark ::-webkit-scrollbar-track { background: #0f0e17; }
+        .dark ::-webkit-scrollbar-thumb { background: #2e2a45; border-radius: 4px; }
+        
+        /* Açık Tema Scrollbar */
+        .light ::-webkit-scrollbar-track { background: #f1f5f9; }
+        .light ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Koyu Tema Sınıfları */
+        .dark .bg-background-dark { background-color: #0f0e17; }
+        .dark .text-white { color: #f1f5f9; }
+        .dark .bg-surface-dark { background-color: #1e1b2e; }
+        .dark .border-border-dark { border-color: #2e2a45; }
+        .dark .text-slate-400 { color: #94a3b8; }
+        .dark .bg-white\/5 { background-color: rgba(255, 255, 255, 0.05); }
+        .dark .border-white\/5 { border-color: rgba(255, 255, 255, 0.05); }
+        .dark .bg-\[\#0b1121\] { background-color: #0b1121; } /* SIDEBAR ARKA PLANI */
+
+
+        /* Açık Tema Geçişi */
+        .light {
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-color: #1e293b;
+        }
+        .light body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .light .bg-background-dark,
+        .light .bg-surface-dark { background-color: var(--surface-color); }
+        .light .text-white { color: var(--text-color); }
+        .light .border-border-dark { border-color: #e2e8f0; }
+        .light .text-slate-400 { color: #64748b; }
+        .light .bg-\[\#0b1121\] { background-color: #ffffff !important; } /* SIDEBAR ARKA PLANI */
+        .light .border-r { border-color: #e2e8f0; } /* SIDEBAR KENARLIĞI */
+        .light .hover\:bg-white\/5 { background-color: #f1f5f9; } /* Sidebar hover */
+        .light .text-slate-400 { color: #64748b; }
+        .light .bg-white\/5 { background-color: #f1f5f9; }
+        .light .border-white\/5 { border-color: #cbd5e1; }
+        .light .text-slate-200 { color: #334155; } /* İlan başlıkları */
+        .light .bg-black\/60 { background-color: #ffffff !important; color: #334155 !important; }
+        .light .select-dark { border-color: #cbd5e1 !important; }
+
+        /* İlan Başlığı Düzeltmesi */
+        .ilan-baslik { 
+            display: block; 
+            max-height: 2.5em; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Dropdown Stilleri */
+        .modal { opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .category-list::-webkit-scrollbar { width: 6px; }
+        .category-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-background-dark text-white h-screen flex overflow-hidden">
+
+    <aside class="w-72 bg-[#0b1121] border-r border-white/5 hidden lg:flex flex-col p-4 shrink-0">
+        <div class="flex items-center gap-3 px-4 py-6 mb-4">
+               <div class="size-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-500/40">
+                 <span class="material-symbols-outlined text-sm text-white">deployed_code</span>
+               </div>
+               <h2 class="font-bold text-lg text-white">InvestPro</h2>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition">
+                <span class="material-symbols-outlined">dashboard</span> Panel
+            </a>
+            <a href="/ilanlar" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-500 border border-blue-600/20 font-medium">
+                <span class="material-symbols-outlined">real_estate_agent</span> İlanlar
+            </a>
+        </nav>
+        
+        <div class="mt-auto pt-4 border-t border-border-dark">
+            <div class="flex items-center justify-between px-2 py-2 relative">
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold shrink-0">MM</div>
+                    <div>
+                        <p class="text-sm font-bold">Men in the Middle</p>
+                        <p class="text-[10px] text-slate-400">Senior Advisor</p>
+                    </div>
+                </div>
+                
+                {# TEMA AYARLARI DROPDOWN'U #}
+                <button onclick="toggleThemeDropdown(event, 'themeDropdown')" class="size-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0 z-40" title="Ayarlar">
+                    <span class="material-symbols-outlined text-lg">settings</span>
+                </button>
+
+                <div id="themeDropdown" class="theme-dropdown hidden absolute bottom-12 right-0 w-40 bg-surface-dark border border-border-dark rounded-xl shadow-lg overflow-hidden z-30">
+                    <p class="text-xs text-slate-400 px-3 pt-2 font-bold uppercase">Tema Seçimi</p>
+                    <button onclick="setTheme('dark')" class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-white hover:bg-white/10 transition">
+                        <span class="material-symbols-outlined text-sm">dark_mode</span> Koyu
+                    </button>
+                    <button onclick="setTheme('light')" class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-white hover:bg-white/10 transition">
+                        <span class="material-symbols-outlined text-sm">light_mode</span> Açık
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <header class="h-16 border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 bg-white/80 dark:bg-background-dark/80 backdrop-blur z-20 shrink-0 transition-colors duration-300">
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">İlan Portföyü</h1>
+            
+            <div class="flex items-center gap-4">
+                <form id="searchForm" action="/ilanlar" method="GET" class="relative group">
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 text-lg">search</span>
+                    
+                    {% if request.args.get('district') %}
+                        <input type="hidden" name="district" value="{{ request.args.get('district') }}">
+                    {% endif %}
+                    {% if request.args.get('neighborhood') %}
+                        <input type="hidden" name="neighborhood" value="{{ request.args.get('neighborhood') }}">
+                    {% endif %}
+                    {% if aktif_filtre %}
+                        <input type="hidden" name="filtre" value="{{ aktif_filtre }}">
+                    {% endif %}
+                    {% if aktif_siralama %}
+                        <input type="hidden" name="siralama" value="{{ aktif_siralama }}">
+                    {% endif %}
+                    
+                    <input name="q" value="{{ arama_terimi }}" placeholder="İlçe veya Mahalle Ara..." class="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-white/5 rounded-xl text-sm pl-10 pr-4 py-2 w-64 focus:ring-1 focus:ring-blue-500 focus:outline-none text-slate-700 dark:text-slate-300 placeholder-slate-500 dark:placeholder-slate-600 transition-all focus:w-72">
+                </form>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+            
+            <div class="mb-8 flex flex-wrap items-start justify-between gap-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white">
+                        {% if request.args.get('district') %}
+                            {{ request.args.get('district') }} İlanları
+                        {% else %}
+                            Tüm İlanlar
+                        {% endif %}
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Toplam <span class="text-blue-500 dark:text-blue-400 font-bold">{{ ilanlar|length }}</span> kayıt listeleniyor.</p>
+                </div>
+                
+                <div class="flex flex-wrap items-start gap-4">
+                    
+                    {# *** Kategori Filtresi (Çoklu Seçim) *** #}
+                    <div class="space-y-4 order-1">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Kategoriler</p>
+                        <div class="relative w-48 group">
+                            <button type="button" id="dropdownButton" class="w-full h-10 bg-white dark:bg-transparent border border-border-light dark:border-border-dark rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 p-2 text-sm text-left flex items-center justify-between text-slate-700 dark:text-white">
+                                Seçilen Kategori ({{ aktif_kategoriler|length }})
+                                <span class="material-symbols-outlined text-base">arrow_drop_down</span>
+                            </button>
+                            <div id="categoryDropdown" class="hidden absolute z-30 mt-1 w-64 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-lg p-3">
+                                <form id="categoryFilterForm" action="/ilanlar" method="GET">
+                                    {# Gizli inputlar... #}
+                                    {% if request.args.get('district') %}<input type="hidden" name="district" value="{{ request.args.get('district') }}">{% endif %}
+                                    {% if request.args.get('neighborhood') %}<input type="hidden" name="neighborhood" value="{{ request.args.get('neighborhood') }}">{% endif %}
+                                    {% if aktif_filtre %}<input type="hidden" name="filtre" value="{{ aktif_filtre }}">{% endif %}
+                                    {% if aktif_siralama %}<input type="hidden" name="siralama" value="{{ aktif_siralama }}">{% endif %}
+                                    {% if arama_terimi %}<input type="hidden" name="q" value="{{ arama_terimi }}">{% endif %}
+
+                                    <div class="space-y-2 max-h-48 overflow-y-auto category-list pb-2 border-b border-border-light dark:border-border-dark mb-3">
+                                        {% for label in SORTED_AMENITY_LABELS %}
+                                            <label class="flex items-center text-sm cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition text-slate-700 dark:text-slate-200">
+                                                <input type="checkbox" 
+                                                       name="category_filter" 
+                                                       value="{{ label }}" 
+                                                       class="form-checkbox size-4 bg-slate-100 dark:bg-border-dark border-slate-300 dark:border-border-dark text-blue-500 rounded focus:ring-blue-500 mr-2"
+                                                       {% if label in aktif_kategoriler %}checked{% endif %}
+                                                >
+                                                {{ label }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-500 transition">
+                                        Filtrele
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 order-2">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Oda Sayısı</p>
+                        <div class="flex gap-2 bg-slate-100 dark:bg-surface-dark p-1 rounded-xl border border-slate-200 dark:border-white/5">
+                            
+                            {% set category_params = '' %}
+                            {% for cat in aktif_kategoriler %}
+                                {% set category_params = category_params + '&category_filter=' + cat|urlencode %}
+                            {% endfor %}
+
+                            {% set sort_param = '&siralama=' + aktif_siralama|urlencode %}
+
+                            {% set location_params = '' %}
+                            {% if request.args.get('district') %}{% set location_params = location_params + '&district=' + request.args.get('district')|urlencode %}{% endif %}
+                            {% if request.args.get('neighborhood') %}{% set location_params = location_params + '&neighborhood=' + request.args.get('neighborhood')|urlencode %}{% endif %}
+                            {% if arama_terimi %}{% set location_params = location_params + '&q=' + arama_terimi|urlencode %}{% endif %}
+
+                            {% set base_url = '/ilanlar?' + sort_param[1:] + category_params + location_params %}
+
+
+                            <a href="{{ base_url|replace('&filtre=tumu','') }}&filtre=tumu" class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ 'bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm dark:shadow-lg' if aktif_filtre in ['tumu', 'tümü', None] else 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5' }}">
+                                Tümü
+                            </a>
+                            <a href="{{ base_url|replace('&filtre=aile','') }}&filtre=aile" class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ 'bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm dark:shadow-lg' if aktif_filtre == 'aile' else 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5' }}">
+                                Aile (3+)
+                            </a>
+                            <a href="{{ base_url|replace('&filtre=yeni_evli','') }}&filtre=yeni_evli" class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ 'bg-white dark:bg-blue-600 text-blue-600 dark:text-white shadow-sm dark:shadow-lg' if aktif_filtre == 'yeni_evli' else 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5' }}">
+                                Yeni Evli
+                            </a>
+                        </div>
+                    </div>
+                    <div class="space-y-4 order-3">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Sıralama</p>
+                        <div class="relative w-48">
+                            <select onchange="updateSort(this.value)" class="w-full h-10 border border-border-light dark:border-border-dark rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 p-2 text-sm bg-white dark:bg-surface-dark text-slate-700 dark:text-slate-200">
+                                <option value="onerilen" {% if aktif_siralama == 'onerilen' %}selected{% endif %}>Önerilen İlanlar</option>
+                                <option value="fiyat_asc" {% if aktif_siralama == 'fiyat_asc' %}selected{% endif %}>En Düşük Fiyat</option>
+                                <option value="fiyat_desc" {% if aktif_siralama == 'fiyat_desc' %}selected{% endif %}>En Yüksek Fiyat</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 pb-10">
+                {% for ilan in ilanlar %}
+                <article class="group bg-white dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-border-dark overflow-hidden hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-900/10 hover:-translate-y-1 flex flex-col h-full">
+                    <div class="h-48 overflow-hidden relative shrink-0">
+                        <img src="{{ ilan.resim }}" 
+                             loading="lazy" 
+                             onerror="handleImageError(this)" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition duration-700" 
+                             alt="Ev Görseli">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                        <div class="absolute top-3 left-3 bg-white/90 dark:bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-800 dark:text-white border border-white/10 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px] text-blue-600 dark:text-blue-400">location_on</span>
+                            {{ ilan.konum.split(',')[0] }}
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 flex flex-col flex-1">
+                        <div class="mb-4">
+                            <h3 class="font-bold text-slate-800 dark:text-slate-200 text-lg ilan-baslik mb-1" title="{{ ilan.baslik }}">{{ ilan.baslik }}</h3>
+                            <p class="text-xs text-slate-500 line-clamp-1">{{ ilan.konum }}</p>
+                        </div>
+                        
+                        <div class="mt-auto">
+                            <p class="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">{{ ilan.fiyat | currency }} <span class="text-sm font-medium text-slate-500">TL</span></p>
+                            
+                            <div class="grid grid-cols-3 gap-2 mb-4">
+                                <div class="bg-slate-100 dark:bg-white/5 rounded-lg p-2 text-center border border-slate-200 dark:border-white/5">
+                                    <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px] mb-1">bed</span>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ ilan.oda_sayisi }}</p>
+                                </div>
+                                <div class="bg-slate-100 dark:bg-white/5 rounded-lg p-2 text-center border border-slate-200 dark:border-white/5">
+                                    <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px] mb-1">square_foot</span>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ ilan.metrekare }} m²</p>
+                                </div>
+                                <div class="bg-slate-100 dark:bg-white/5 rounded-lg p-2 text-center border border-slate-200 dark:border-white/5">
+                                    <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[18px] mb-1">calendar_month</span>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ ilan.bina_yasi }} Yaş</p>
+                                </div>
+                            </div>
+
+                            <button onclick='acDetay({{ ilan | tojson }})' class="w-full py-2.5 rounded-xl bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-bold text-sm transition-all border border-blue-200 dark:border-blue-600/20 group-hover:bg-blue-600 group-hover:text-white">
+                                Detayları İncele
+                            </button>
+                        </div>
+                    </div>
+                </article>
+                {% else %}
+                <div class="col-span-full py-20 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-3xl bg-slate-50 dark:bg-surface-dark/30">
+                    <span class="material-symbols-outlined text-6xl mb-4 text-slate-400 dark:text-slate-600">search_off</span>
+                    <h3 class="text-xl font-bold text-slate-600 dark:text-slate-400">Sonuç Bulunamadı</h3>
+                    <p class="text-sm mt-2 max-w-md text-center">Aradığınız kriterlere uygun ilan veri setinde mevcut değil.</p>
+                    <a href="/ilanlar" class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition">Tüm İlanları Göster</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <div id="detayModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark w-full max-w-4xl rounded-3xl overflow-hidden relative shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+            <button onclick="kapatDetay()" class="absolute top-4 right-4 z-20 size-10 flex items-center justify-center bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm border border-white/10">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="md:w-1/2 h-64 md:h-auto relative bg-black">
+                <img id="modalResim" src="" class="w-full h-full object-cover opacity-90" alt="Ev Görseli Detay">
+            </div>
+            <div class="md:w-1/2 p-8 flex flex-col overflow-y-auto">
+                <div class="mb-1">
+                    <span id="modalKonum" class="text-blue-500 dark:text-blue-400 text-xs font-bold uppercase tracking-wider border border-blue-500/30 px-2 py-1 rounded bg-blue-50 dark:bg-blue-500/10">Konum</span>
+                </div>
+                <h2 id="modalBaslik" class="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-6 leading-tight mt-3"></h2>
+                <div class="flex items-baseline gap-2 mb-8 pb-8 border-b border-slate-200 dark:border-white/10">
+                    <span id="modalFiyat" class="text-4xl font-black text-slate-900 dark:text-white tracking-tight"></span>
+                    <span class="text-xl font-medium text-slate-500">TL</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/5">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-slate-400">square_foot</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Net Alan</span>
+                        </div>
+                        <span id="modalM2" class="text-xl font-bold text-slate-800 dark:text-white"></span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/5">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-slate-400">bed</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Oda Sayısı</span>
+                        </div>
+                        <span id="modalOda" class="text-xl font-bold text-slate-800 dark:text-white"></span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/5">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-slate-400">calendar_month</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Bina Yaşı</span>
+                        </div>
+                        <span id="modalYas" class="text-xl font-bold text-slate-800 dark:text-white"></span>
+                    </div>
+                </div>
+                <div class="mt-auto grid grid-cols-2 gap-3">
+                    <button class="bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-900/20">
+                        <span class="material-symbols-outlined">chat</span> Whatsapp
+                    </button>
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20">
+                        <span class="material-symbols-outlined">call</span> Ara
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('detayModal');
+        
+        // --- TEMA MANTIĞI ---
+        function setTheme(theme) {
+            const html = document.documentElement;
+            if (theme === 'dark') {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+            document.querySelectorAll('.theme-dropdown').forEach(d => d.classList.add('hidden'));
+        }
+
+        function toggleThemeDropdown(e) {
+            e.stopPropagation(); 
+            document.querySelectorAll('.theme-dropdown').forEach(d => d.classList.add('hidden'));
+            const targetId = e.currentTarget.nextElementSibling.id;
+            document.getElementById(targetId).classList.toggle('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark'; 
+            setTheme(savedTheme);
+            if (typeof updateButtonText === 'function') {
+                updateButtonText(); 
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('.theme-dropdown').forEach(dropdown => {
+                const settingsButton = dropdown.previousElementSibling;
+                if (!dropdown.contains(e.target) && !settingsButton.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        });
+        
+        
+        function handleImageError(img) {
+            if (img.dataset.retry) return;
+            img.dataset.retry = true;
+            img.src = 'https://via.placeholder.com/400x200?text=Gorsel+YUKLENEMEDI';
+            img.onerror = null; 
+        }
+
+        function acDetay(ilan) {
+            document.getElementById('modalResim').src = ilan.resim;
+            document.getElementById('modalBaslik').innerText = ilan.baslik;
+            document.getElementById('modalKonum').innerText = ilan.konum;
+            document.getElementById('modalFiyat').innerText = new Intl.NumberFormat('tr-TR').format(ilan.fiyat);
+            document.getElementById('modalM2').innerText = (ilan.metrekare || '-') + ' m²';
+            document.getElementById('modalOda').innerText = ilan.oda_sayisi || '-';
+            document.getElementById('modalYas').innerText = (ilan.bina_yasi || '-') + ' Yaş';
+            modal.classList.add('active');
+        }
+
+        function kapatDetay() {
+            modal.classList.remove('active');
+        }
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                kapatDetay();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape" && modal.classList.contains('active')) {
+                kapatDetay();
+            }
+        });
+        
+        // Kategori JS
+        const categoryDropdown = document.getElementById('categoryDropdown');
+        const dropdownButton = document.getElementById('dropdownButton');
+        const categoryFilterForm = document.getElementById('categoryFilterForm');
+        
+        dropdownButton.addEventListener('click', () => {
+             categoryDropdown.classList.toggle('hidden');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && !categoryDropdown.contains(e.target)) {
+                categoryDropdown.classList.add('hidden');
+            }
+        });
+        
+        function updateButtonText() {
+            const checkedCount = categoryFilterForm.querySelectorAll('input[name="category_filter"]:checked').length;
+            if (checkedCount > 0) {
+                dropdownButton.innerHTML = `Seçilen Kategori (${checkedCount}) <span class="material-symbols-outlined text-base">arrow_drop_down</span>`;
+            } else {
+                 dropdownButton.innerHTML = `Tüm Kategoriler <span class="material-symbols-outlined text-base">arrow_drop_down</span>`;
+            }
+        }
+        
+        categoryFilterForm.addEventListener('change', updateButtonText);
+
+        function getCurrentFilters() {
+            const currentUrl = new URL(window.location.href);
+            const filters = {};
+            filters.filtre = currentUrl.searchParams.get('filtre') || 'tumu';
+            filters.siralama = currentUrl.searchParams.get('siralama') || 'onerilen';
+            filters.district = currentUrl.searchParams.get('district') || '';
+            filters.neighborhood = currentUrl.searchParams.get('neighborhood') || '';
+            filters.q = currentUrl.searchParams.get('q') || '';
+            filters.categories = currentUrl.searchParams.getAll('category_filter');
+            return filters;
+        }
+
+        function updateSort(selectedValue) {
+            const filters = getCurrentFilters();
+            let categoryParams = '';
+            filters.categories.forEach(cat => {
+                categoryParams += `&category_filter=${encodeURIComponent(cat)}`;
+            });
+            let newUrl = `/ilanlar?filtre=${filters.filtre}&siralama=${selectedValue}${categoryParams}`;
+            if (filters.district) newUrl += `&district=${filters.district}`;
+            if (filters.neighborhood) newUrl += `&neighborhood=${filters.neighborhood}`;
+            if (filters.q) newUrl += `&q=${filters.q}`;
+            window.location.href = newUrl;
+        }
+        
+    </script>
+
+</body>
+</html>

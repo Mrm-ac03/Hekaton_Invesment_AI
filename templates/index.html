@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Investment Advisor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+        darkMode: "class", 
+        theme: {
+            extend: {
+                colors: { 
+                    "primary": "#137fec", 
+                    "primary-glow": "#3b82f6",
+                    "background-dark": "#0f172a", 
+                    "surface-dark": "rgba(255, 255, 255, 0.75)", 
+                    "background-light": "#ffffff",
+                },
+                fontFamily: { "display": ["Inter", "sans-serif"] },
+                boxShadow: {
+                    'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+                    'glow': '0 0 20px rgba(19, 127, 236, 0.3)',
+                }
+            }
+        }
+    }
+</script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+    
+    /* Global CSS (Koyu Temanın Varsayılan Görünümü) */
+    .dark body {
+        background-color: #0f172a;
+        background-image: 
+            radial-gradient(circle at 15% 25%, rgba(19, 127, 236, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 85% 65%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+        color: #f1f5f9;
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    .dark .glass-panel {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(24px) saturate(120%);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+    .dark .glass-input {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        color: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(8px);
+    }
+    /* Glossy text sınıfı kaldırıldı veya sadece açık tema için tutulabilir, ama başlıkta kullanmıyoruz artık */
+    .dark .text-white { color: #f1f5f9; }
+    .dark .sidebar-panel { 
+        background-color: #0f172a; 
+        color: #f1f5f9;
+        border-color: #1e293b;
+    } 
+
+    /* AÇIK TEMA Stilleri */
+    .light body {
+        background-color: #f1f5f9; /* slate-100 */
+        color: #1e293b; /* slate-800 */
+    }
+    .light .text-white { color: #1e293b; }
+    .light .text-slate-300 { color: #475569; }
+    .light .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .light .glass-input {
+        background: rgba(241, 245, 249, 0.8); /* slate-100 */
+        border: 1px solid #cbd5e1; /* slate-300 */
+        color: #1e293b;
+    }
+    .light .sidebar-panel {
+        background-color: #ffffff; /* SIDEBAR ARKA PLANI */
+        border-color: #e2e8f0; /* SIDEBAR KENARLIĞI */
+        color: #1e293b;
+    }
+    .light .text-slate-400 { color: #64748b; }
+    .light .text-slate-500 { color: #475569; }
+    .light .hover\:text-white { color: #1e293b; } /* Sidebar hover */
+    .light .hover\:bg-white\/5 { background-color: #f1f5f9; }
+
+
+    /* Harita için özel efekt */
+    .map-container iframe {
+        filter: grayscale(20%) contrast(1.1);
+        transition: all 0.5s ease;
+    }
+    .map-container:hover iframe {
+        filter: grayscale(0%);
+    }
+
+    /* Sidebar CSS Stilleri */
+    .sidebar-overlay { 
+        visibility: hidden; 
+        opacity: 0; 
+        transition: all 0.3s; 
+    }
+    .sidebar-overlay.active { 
+        visibility: visible; 
+        opacity: 1; 
+    }
+    .sidebar-panel { 
+        transform: translateX(-100%); 
+        transition: transform 0.4s; 
+    }
+    .sidebar-overlay.active .sidebar-panel { 
+        transform: translateX(0); 
+    }
+</style>
+</head>
+<body class="flex flex-col overflow-x-hidden">
+
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl px-6 py-4 shadow-sm transition-colors duration-300">
+    <div class="flex items-center gap-4">
+        <div onclick="toggleSidebar()" class="size-10 flex items-center justify-center text-white bg-gradient-to-br from-primary to-blue-600 rounded-xl shadow-glow-sm cursor-pointer hover:opacity-90 transition">
+            <span class="material-symbols-outlined text-xl">menu</span>
+        </div>
+        <h2 class="text-slate-800 dark:text-white text-lg font-bold tracking-tight">Investment Advisor AI</h2>
+    </div>
+    <a href="/ilanlar" class="flex items-center gap-2 text-slate-800 dark:text-slate-200 hover:text-primary transition font-bold text-sm">
+        <span class="material-symbols-outlined text-base">real_estate_agent</span> İlanlar
+    </a>
+</header>
+
+<main class="flex-1 w-full max-w-[1440px] mx-auto p-6 md:p-8 lg:p-10 relative">
+    
+    <div class="flex flex-col mb-10 relative z-10">
+        <h1 class="text-slate-800 dark:text-white text-4xl md:text-5xl font-black tracking-tight">Mülk Değerlendirme</h1>
+        <p class="text-slate-500 dark:text-slate-300 text-base max-w-xl font-light opacity-90 mt-2">İstanbul Emlak Piyasası için yapay zeka analizi.</p>
+    </div>
+
+    <form method="POST" action="/">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+        
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <section class="glass-panel rounded-2xl overflow-hidden">
+                <div class="border-b border-slate-200/60 px-6 py-4 flex justify-between items-center bg-gradient-to-r from-white/40 to-transparent">
+                    <h3 class="text-slate-800 text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">location_on</span> Konum
+                    </h3>
+                    <span class="text-xs font-bold text-emerald-600 bg-emerald-100/50 border border-emerald-200/50 px-3 py-1 rounded-full">İstanbul</span>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">İlçe</label>
+                            <select id="district_select" name="district" onchange="handleDistrictChange()" required class="w-full h-12 px-4 rounded-xl glass-input">
+                                <option value="" disabled selected>Seçiniz...</option>
+                                {% for d in choices.get('District', []) %}
+                                    <option value="{{ d }}" {% if current_data.district == d %}selected{% endif %}>{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Mahalle</label>
+                            <select id="neighborhood_select" name="neighborhood" onchange="updateMap()" required class="w-full h-12 px-4 rounded-xl glass-input">
+                                <option value="" disabled selected>Önce ilçe seçiniz</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-48 rounded-xl overflow-hidden border border-white/50 shadow-inner map-container relative group">
+                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100 animate-pulse -z-10">
+                            <span class="text-slate-400 text-sm font-bold">Harita Yükleniyor...</span>
+                        </div>
+                        <iframe 
+                            id="google_map"
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0" 
+                            scrolling="no" 
+                            marginheight="0" 
+                            marginwidth="0" 
+                            src="{{ map_url | safe }}"
+                            class="w-full h-full object-cover">
+                        </iframe>
+                        <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm border border-white">
+                            CANLI GÖRÜNTÜ
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="glass-panel rounded-2xl overflow-hidden">
+                <div class="border-b border-slate-200/60 px-6 py-4 bg-gradient-to-r from-white/40 to-transparent">
+                    <h3 class="text-slate-800 text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">home_work</span> Özellikler
+                    </h3>
+                </div>
+                <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Oda Sayısı</label>
+                        <select name="rooms" id="rooms_select" class="w-full h-12 px-4 rounded-xl glass-input">
+                            {% for r in choices.get('Number of rooms', ['3+1']) %}
+                                <option value="{{ r }}" {% if current_data.rooms == r %}selected{% endif %}>{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Bina Yaşı</label>
+                        <select name="age" id="age_select" class="w-full h-12 px-4 rounded-xl glass-input">
+                            {% for a in choices.get('Building Age', ['0']) %}
+                                <option value="{{ a }}" {% if current_data.age == a %}selected{% endif %}>{{ a }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Bulunduğu Kat</label>
+                        <select name="floor" id="floor_select" class="w-full h-12 px-4 rounded-xl glass-input">
+                            {% for f in choices.get('Floor location', ['1']) %}
+                                <option value="{{ f }}" {% if current_data.floor == f %}selected{% endif %}>{{ f }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Net Alan (m²)</label>
+                        <input name="m2" id="m2_input" class="w-full h-12 px-4 rounded-xl glass-input" type="number" value="{{ current_data.m2 }}" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Isıtma</label>
+                        <select name="heating" id="heating_select" class="w-full h-12 px-4 rounded-xl glass-input">
+                            {% for h in choices.get('Heating', ['Kombi (Doğalgaz)']) %}
+                                <option value="{{ h }}" {% if current_data.heating == h %}selected{% endif %}>{{ h }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-panel rounded-2xl overflow-hidden">
+                <div class="border-b border-slate-200/60 px-6 py-4 bg-gradient-to-r from-white/40 to-transparent">
+                    <h3 class="text-slate-800 text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">attach_money</span> Finansal Bilgi
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase ml-1">Liste Fiyatı (TL)</label>
+                    <div class="relative">
+                        <input name="listing_price" id="priceInput" class="w-full h-14 px-4 rounded-xl glass-input font-bold text-2xl text-slate-800 tracking-wide border-primary/20 bg-primary/5" type="text" value="{{ default_price }}" oninput="formatCurrency(this)" required>
+                    </div>
+                </div>
+            </section>
+
+            <button type="submit" class="w-full py-5 mt-2 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-lg shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-3 group">
+                <span class="material-symbols-outlined group-hover:rotate-12 transition-transform">bolt</span> Yatırımı Değerlendir
+            </button>
+        </div>
+
+        <div class="lg:col-span-5 relative">
+            <div class="sticky top-28 flex flex-col gap-6">
+                
+                {% if result %}
+                <div class="bg-white/85 backdrop-blur-xl border border-white/90 rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] relative overflow-hidden p-8 transition-all duration-500" id="resultCard">
+                    
+                    <div class="absolute top-[-50%] right-[-50%] w-[100%] h-[100%] bg-emerald-400/20 blur-[80px] rounded-full pointer-events-none mix-blend-multiply"></div>
+
+                    <div class="flex justify-between items-start mb-8 relative z-10">
+                        <div>
+                            <p class="text-slate-500 font-bold text-xs uppercase tracking-[0.2em] mb-2">Yapay Zeka Raporu</p>
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 uppercase">{{ result.status }}</h2>
+                                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md">
+                                    <span class="material-symbols-outlined text-2xl {{ result.color_cls }}">{{ result.icon }}</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="{% if result.status == 'PAHALI' %}bg-rose-500/20 text-rose-300 border-rose-500/30{% elif result.status == 'FIRSAT' %}bg-emerald-500/20 text-emerald-300 border-emerald-500/30{% else %}bg-amber-500/20 text-amber-300 border-amber-500/30{% endif %} px-3 py-1.5 rounded-lg text-xs font-bold border backdrop-blur-xl">%{{ result.r2 }} Güven</div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 relative z-10">
+                        <div class="flex justify-between items-end px-1">
+                            <span class="text-slate-600 font-medium text-sm">Tahmini Adil Değer</span>
+                            <span class="text-2xl font-bold text-slate-900">{{ result.fair_value }} TL</span>
+                        </div>
+                        <div class="w-full bg-slate-200/50 h-4 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-500 to-{{ result.grad_to }} h-full rounded-full shadow-lg relative transition-all duration-1000" style="width: {{ result.bar_width }}%">
+                                <div class="h-full w-[2px] bg-white absolute right-0"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center py-5 border-y border-dashed border-slate-300 relative z-10 mt-8">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Liste Fiyatı</p>
+                            <p class="text-xl font-bold text-slate-800">{{ result.listing_price }} TL</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Oran (Pazar/Fiyat)</p>
+                            <p class="text-xl font-bold {{ result.color_cls }}">{{ result.ratio }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50/80 dark:bg-slate-800/50 rounded-xl p-5 border border-blue-200/60 dark:border-white/10 mt-6 relative z-10">
+                        <p class="text-sm text-slate-700 dark:text-white leading-relaxed font-light">
+                            <strong class="text-slate-900 dark:text-white">Analiz Özeti:</strong> Bu mülk, piyasa değerinden <span class="{{ result.color_cls }} font-bold">{{ result.diff }}%</span> farklı listelenmiştir. {{ result.desc }}
+                        </p>
+                    </div>
+                    
+                    <a href="/ilanlar?filtre=tumu&district={{ current_data.district }}&neighborhood={{ current_data.neighborhood }}" class="block w-full text-center py-3 mt-6 rounded-xl bg-slate-800 text-white font-bold text-sm shadow-md hover:bg-slate-700 transition-all flex items-center justify-center gap-2 group">
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span> Bölgedeki Benzer İlanları Gör
+                    </a>
+                </div>
+
+                <div id="modelCard" class="glass-panel rounded-2xl p-6 relative overflow-hidden">
+                    <h4 class="text-xs font-bold text-slate-800 mb-5 flex items-center gap-2 uppercase">
+                        <span class="material-symbols-outlined text-primary text-base">bar_chart</span> Model Performansı
+                    </h4>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-500 font-medium">R² Skoru</span>
+                        <span class="text-sm font-bold text-slate-900">{{ result.r2 }}</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full mt-2">
+                        <div class="bg-emerald-500 h-full rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+
+                {% else %}
+                
+                <div class="glass-panel rounded-3xl p-10 text-center flex flex-col items-center justify-center h-full min-h-[400px]">
+                    <div class="size-20 bg-white/50 rounded-full flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined text-4xl text-slate-400">smart_toy</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-700">Analize Hazır</h3>
+                    <p class="text-slate-500 mt-2 max-w-xs">Soldaki bilgileri doldurup "Yatırımı Değerlendir" butonuna basınız.</p>
+                </div>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+    </form>
+</main>
+
+<div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 z-[100] flex">
+    <div onclick="toggleSidebar()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    
+    <aside class="sidebar-panel w-72 h-full bg-slate-900 border-r border-white/5 shadow-2xl flex flex-col text-white relative">
+        <div class="p-8 pb-4 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">InvestPro</h2>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <nav class="flex-1 px-4 flex flex-col gap-2 mt-4">
+            <a href="/" class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20"><span class="material-symbols-outlined">dashboard</span> Panel</a>
+            <a href="/ilanlar" class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"><span class="material-symbols-outlined">real_estate_agent</span> İlanlar</a>
+        </nav>
+
+        <div class="mt-auto pt-4 border-t border-slate-700/50">
+            <div class="flex items-center justify-between px-4 py-2 relative">
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold shrink-0">MM</div>
+                    <div>
+                        <p class="text-sm font-bold">Men in the Middle</p>
+                        <p class="text-[10px] text-slate-400">Senior Advisor</p>
+                    </div>
+                </div>
+                
+                {# TEMA AYARLARI DROPDOWN'U #}
+                <button onclick="toggleThemeDropdown(event)" class="size-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0 z-40" title="Ayarlar">
+                    <span class="material-symbols-outlined text-lg">settings</span>
+                </button>
+
+                <div id="themeDropdownSidebar" class="theme-dropdown hidden absolute bottom-12 right-0 w-40 bg-slate-800 border border-white/10 rounded-xl shadow-lg overflow-hidden z-30">
+                    <p class="text-xs text-slate-400 px-3 pt-2 font-bold uppercase">Tema Seçimi</p>
+                    <button onclick="setTheme('dark')" class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-white hover:bg-white/10 transition">
+                        <span class="material-symbols-outlined text-sm">dark_mode</span> Koyu
+                    </button>
+                    <button onclick="setTheme('light')" class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-white hover:bg-white/10 transition">
+                        <span class="material-symbols-outlined text-sm">light_mode</span> Açık
+                    </button>
+                </div>
+                {# TEMA AYARLARI DROPDOWN BİTİŞ #}
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    const districtMap = {{ ISTANBUL_DATA | tojson }};
+
+    // --- TEMA MANTIĞI BAŞLANGIÇ ---
+    function setTheme(theme) {
+        const html = document.documentElement;
+        if (theme === 'dark') {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            localStorage.setItem('theme', 'light');
+        }
+        document.querySelectorAll('.theme-dropdown').forEach(d => d.classList.add('hidden'));
+    }
+
+    function toggleThemeDropdown(e) {
+        e.stopPropagation(); 
+        document.querySelectorAll('.theme-dropdown').forEach(d => d.classList.add('hidden'));
+        e.currentTarget.nextElementSibling.classList.toggle('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark'; 
+        setTheme(savedTheme);
+    });
+
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.theme-dropdown').forEach(dropdown => {
+            const settingsButton = dropdown.previousElementSibling;
+            if (!dropdown.contains(e.target) && !settingsButton.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    });
+    // --- TEMA MANTIĞI BİTİŞ ---
+
+
+    function toggleSidebar() {
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
+    function handleDistrictChange() {
+        const districtSelect = document.getElementById("district_select");
+        const neighborhoodSelect = document.getElementById("neighborhood_select");
+        const selectedDistrict = districtSelect.value;
+
+        neighborhoodSelect.innerHTML = '<option value="" disabled selected>Seçiniz...</option>';
+
+        if (selectedDistrict && districtMap[selectedDistrict]) {
+            const neighborhoods = districtMap[selectedDistrict];
+            neighborhoods.sort((a, b) => a.localeCompare(b, 'tr'));
+            
+            neighborhoods.forEach(n => {
+                const option = document.createElement("option");
+                option.value = n;
+                option.text = n;
+                neighborhoodSelect.appendChild(option);
+            });
+        }
+        updateMap(selectedDistrict, "");
+    }
+
+    function updateMap(distOverride=null, neighOverride=null) {
+        const district = distOverride || document.getElementById("district_select").value;
+        const neighborhood = neighOverride || document.getElementById("neighborhood_select").value;
+        const iframe = document.getElementById("google_map");
+
+        if(!district) return;
+
+        let query = `${district}, Istanbul`;
+        if (neighborhood) query = `${neighborhood}, ${district}, Istanbul`;
+        
+        iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+    }
+
+    function formatCurrency(input) {
+        let value = input.value.replace(/\D/g, "");
+        if (value === "") return;
+        input.value = new Intl.NumberFormat('tr-TR').format(value);
+    }
+
+    window.onload = function() {
+        const currentDist = "{{ current_data.district }}";
+        const currentNeigh = "{{ current_data.neighborhood }}";
+        const priceInput = document.getElementById("priceInput");
+        
+        if(priceInput) formatCurrency(priceInput);
+        
+        if (currentDist) {
+            document.getElementById("district_select").value = currentDist;
+            handleDistrictChange();
+
+            if (currentNeigh) {
+                setTimeout(() => {
+                    document.getElementById("neighborhood_select").value = currentNeigh;
+                    updateMap();
+                }, 150); 
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

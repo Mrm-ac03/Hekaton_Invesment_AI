@@ -1,0 +1,71 @@
+========================================================================
+PROJE SUNUM VE TEKNİK RAPOR DOSYASI
+========================================================================
+
+TAKIM ADI: AI_SPARK_Yatirim_Danismani
+TAKIM ÜYELERİ:
+1. (Ad Soyad)
+2. (Ad Soyad)
+3. (Ad Soyad)
+
+------------------------------------------------------------------------
+1. PROJE ÖZETİ (Asansör Konuşması)
+------------------------------------------------------------------------
+İstanbul’da 2020 yılı emlak ilan verilerini kullanarak bir evin "Adil Değer"ini tahmin eden
+ve ilan fiyatı ile kıyaslayarak kullanıcıya "Fırsat / Normal / Pahalı" yatırım önerisi veren
+bir Yapay Zeka tabanlı danışman sistemi geliştirdik.
+
+------------------------------------------------------------------------
+2. KURULUM VE ÇALIŞTIRMA (How to Run)
+------------------------------------------------------------------------
+1) Python 3.10+ kurulu olmalı
+2) Bağımlılıklar:
+   pip install -r requirements.txt
+3) Uygulamayı çalıştır:
+   streamlit run app.py
+
+------------------------------------------------------------------------
+3. VERİ ÖN İŞLEME YAKLAŞIMI (Data Engineering)
+------------------------------------------------------------------------
+- Temizlenen Alanlar:
+  * Price sütunundaki "TL", nokta ve boşluklar temizlenerek sayısal formata çevrildi.
+  * Hedef kitle kredi ile alım yapan kullanıcılar olduğundan, "Available for Loan = Yes"
+    olmayan ilanlar eğitimde filtrelendi.
+- Eksik veriler:
+  * Sayısal alanlar: median ile dolduruldu
+  * Kategorik alanlar: en sık değer ile dolduruldu
+- Eklenen Yeni Özellikler (Feature Engineering):
+  * Hedef değişken log1p dönüşümü ile stabilize edildi (uç değer etkisini azaltmak için).
+- Seçilen Kritik Özellikler (Feature Selection):
+  * Tüm özellikler kullanılacak şekilde kuruldu; One-Hot Encoding ile kategorikler temsil edildi.
+
+------------------------------------------------------------------------
+4. MODEL MİMARİSİ
+------------------------------------------------------------------------
+- Kullanılan Algoritma: XGBoost Regressor
+- Neden bu algoritma?:
+  * Tabular (sekme) veri üzerinde güçlü performans
+  * Doğrusal olmayan ilişkileri iyi yakalama
+  * Eksik veri ve farklı ölçeklere dayanıklılık
+- Elde Edilen Başarı Skoru (Hold-out %20 test):
+  * R²: (app sağ panelde gösteriliyor)
+  * RMSE (log): (app sağ panelde gösteriliyor)
+
+------------------------------------------------------------------------
+5. YATIRIM KARAR MANTIĞI (Business Logic)
+------------------------------------------------------------------------
+Modelin tahmin ettiği Adil Değer (FV) ile ilan fiyatını (P) oranlayarak karar veriyoruz:
+
+- r = P / FV
+- FIRSAT: r < 0.90
+- NORMAL: 0.90 <= r <= 1.10
+- PAHALI: r > 1.10
+
+Not: Eşikler arayüzde slider ile ayarlanabilir.
+
+------------------------------------------------------------------------
+6. SİZİ DİĞERLERİNDEN AYIRAN ÖZELLİK (Unique Value)
+------------------------------------------------------------------------
+- Jüri için tek tıkla çalışan demo: Ev bilgilerini gir → "FIRSAT MI?" → anında sonuç
+- Eşik değerleri dinamik: Kullanıcı risk iştahına göre Fırsat/Pahalı eşiklerini ayarlayabilir
+- Model metrikleri şeffaf: R² ve RMSE arayüzde gösterilir
